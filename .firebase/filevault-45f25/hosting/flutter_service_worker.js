@@ -3,8 +3,7 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"apple-touch-icon.png": "03db130cefbd0e77a4dd444f32a3c855",
-"assets/AssetManifest.bin": "693635b5258fe5f1cda720cf224f158c",
+const RESOURCES = {"assets/AssetManifest.bin": "693635b5258fe5f1cda720cf224f158c",
 "assets/AssetManifest.bin.json": "69a99f98c8b1fb8111c5fb961769fcd8",
 "assets/AssetManifest.json": "2efbb41d7877d10aac9d091f58ccd7b9",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
@@ -23,15 +22,15 @@ const RESOURCES = {"apple-touch-icon.png": "03db130cefbd0e77a4dd444f32a3c855",
 "canvaskit/skwasm.wasm": "9f0c0c02b82a910d12ce0543ec130e60",
 "canvaskit/skwasm.worker.js": "bfb704a6c714a75da9ef320991e88b03",
 "favicon.ico": "d3b1865022836d0f2aaf77670fd05283",
-"favicon.png": "5dcef449791fa27946b3d35ad8803796",
+"favicon.png": "03db130cefbd0e77a4dd444f32a3c855",
 "flutter.js": "f31737fb005cd3a3c6bd9355efd33061",
-"flutter_bootstrap.js": "66efb2dd35f6772ffb562889fd20ddcd",
+"flutter_bootstrap.js": "76ec7b020494debefc29f0965ea78a20",
 "icons/Icon-maskable-192.png": "a6de3658a253530bdaae94022be6c956",
 "icons/Icon-maskable-512.png": "dfb42ab0237f7a39a58ea073d4bea32a",
-"index.html": "d153f4e4742bb7611e5923b8699c6c61",
-"/": "d153f4e4742bb7611e5923b8699c6c61",
+"index.html": "a1e176fbb286324ceba38d5fe65107ea",
+"/": "a1e176fbb286324ceba38d5fe65107ea",
 "main.dart.js": "9908b453574228746b6fe806e3018292",
-"manifest.json": "ee729856e7ba876f12629846c875b4f4",
+"manifest.json": "01d5706384b26fcdf18e8c94d9fd64a3",
 "version.json": "60b246ac4f814bf37e7eaf3efc710745"};
 // The application shell files that are downloaded before a service worker can
 // start.
