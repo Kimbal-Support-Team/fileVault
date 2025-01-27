@@ -1,8 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'dart:io';
 import 'data.dart';
 import 'gdrive_service.api.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class UploadButton extends StatefulWidget {
   const UploadButton({super.key});
@@ -14,213 +15,255 @@ class UploadButton extends StatefulWidget {
 class _UploadButtonState extends State<UploadButton> {
   bool showLoading = false;
   bool showPinDialog = true;
-void showUploadDialog(BuildContext context) {
-  String selectedOption = options[0];
-  String pin = ''; // To store user-entered PIN
-  const String correctPin = '123qwe'; // Hardcoded PIN
-  bool isPinCorrect = false; // Flag to check PIN validity
 
-  showDialog(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        title: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              "Upload Files",
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.blueAccent,
+  void showUploadDialog(BuildContext context) {
+    String selectedOption = options[0];
+    String pin = ''; // To store user-entered PIN
+    String correctPin = dotenv.env['UPLOADING_PIN']!; // Hardcoded PIN
+    bool isPinCorrect = false; // Flag to check PIN validity
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "Upload Files",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blueAccent,
+                ),
               ),
-            ),
-          ],
-        ),
-        content: StatefulBuilder(
-          builder: (context, state) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 10),
-                Text(
-                  "Enter PIN to Unlock Upload:",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
+            ],
+          ),
+          content: StatefulBuilder(
+            builder: (context, state) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 10),
+                  const Text(
+                    "Enter PIN to Unlock Upload:",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
                     ),
-                    hintText: 'Enter PIN',
                   ),
-                  obscureText: true, // To hide PIN input
-                  onChanged: (value) {
-                    state(() {
-                      pin = value;
-                      isPinCorrect = pin == correctPin;
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  "Select a Folder:",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.grey[200],
-                    border: Border.all(color: Colors.grey[400]!),
-                  ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: DropdownButton<String>(
-                    value: selectedOption,
-                    isExpanded: true,
-                    underline: const SizedBox(),
-                    items: options.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(
-                          value,
-                          style: TextStyle(fontSize: 14),
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
+                  const SizedBox(height: 8),
+                  TextField(
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      hintText: 'Enter PIN',
+                    ),
+                    obscureText: true, // To hide PIN input
+                    onChanged: (value) {
                       state(() {
-                        selectedOption = newValue!;
+                        pin = value;
+                        isPinCorrect = pin == correctPin;
                       });
                     },
                   ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.of(context).pop();
+                  const SizedBox(height: 16),
+                  const Text(
+                    "Select a Folder:",
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                      border: Border.all(color: Colors.grey[400]!),
+                    ),
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: DropdownButton<String>(
+                      value: selectedOption,
+                      isExpanded: true,
+                      underline: const SizedBox(),
+                      items: options.map((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            value,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (String? newValue) {
+                        state(() {
+                          selectedOption = newValue!;
+                        });
                       },
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                      ),
-                      child: Text(
-                        "Cancel",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: const Color.fromARGB(255, 1, 124, 201),
-                        ),
-                      ),
                     ),
-                    ElevatedButton(
-                      onPressed: isPinCorrect
-                          ? () async {
-                              String folderId =
-                                  folderIds['$selectedOption'] ?? '';
-                              bool isUploaded =
-                                  await uploadFileToDrive(folderId);
-
-                              if (isUploaded) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        "File uploaded successfully to $selectedOption."),
-                                    backgroundColor: Colors.green,
-                                    behavior: SnackBarBehavior.floating,
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
+                  ),
+                  const SizedBox(height: 16),
+                  showLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(),
+                        )
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            ElevatedButton(
+                              onPressed: () {
+                                state(() {
+                                  showLoading = false;
+                                });
                                 Navigator.of(context).pop();
-                              } else {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                        "File uploading failed. Please try again!"),
-                                    backgroundColor: Colors.red,
-                                    behavior: SnackBarBehavior.floating,
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            }
-                          : null, // Disable button if PIN is incorrect
-                      style: ElevatedButton.styleFrom(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
+                              },
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                              ),
+                              child: const Text(
+                                "Cancel",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color.fromARGB(255, 1, 124, 201),
+                                ),
+                              ),
+                            ),
+                            ElevatedButton(
+                              onPressed: isPinCorrect
+                                  ? () async {
+                                      String folderId =
+                                          folderIds[selectedOption] ?? '';
+                                      state(() {
+                                        showLoading = true;
+                                      });
+                                      bool isUploaded =
+                                          await uploadFileToDrive(folderId);
+
+                                      if (isUploaded) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          SnackBar(
+                                            content: Text(
+                                                "File uploaded successfully to $selectedOption."),
+                                            backgroundColor: Colors.green,
+                                            behavior: SnackBarBehavior.floating,
+                                            duration:
+                                                const Duration(seconds: 2),
+                                          ),
+                                        );
+                                        state(() {
+                                          showLoading = false;
+                                        });
+                                        Navigator.of(context).pop();
+                                      } else {
+                                        state(() {
+                                          showLoading = false;
+                                        });
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                                "File uploading failed. Please try again!"),
+                                            backgroundColor: Colors.red,
+                                            behavior: SnackBarBehavior.floating,
+                                            duration: Duration(seconds: 2),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  : null, // Disable button if PIN is incorrect
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 12,
+                                ),
+                              ),
+                              child: Text(
+                                "Upload",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: isPinCorrect
+                                      ? const Color.fromARGB(255, 1, 124, 201)
+                                      : Colors.grey,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                      ),
-                      child: Text(
-                        "Upload",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isPinCorrect
-                              ? const Color.fromARGB(255, 1, 124, 201)
-                              : Colors.grey,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            );
-          },
-        ),
-      );
-    },
-  );
-}
+                ],
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
 
   Future<bool> uploadFileToDrive(String folderId) async {
-    // Open file picker to allow user to select a file
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    try {
+      // Open file picker to allow user to select a file
+      FilePickerResult? result = await FilePicker.platform.pickFiles();
 
-    if (result != null && result.files.single.path != null) {
-      // File selected
-      File file = File(result.files.single.path!);
-      String filePath = file.path;
-      String fileName = result.files.single.name;
-      // Call the function to upload file to the selected location
+      if (result != null) {
+        String fileName = result.files.single.name;
 
-      // Placeholder for file upload logic using Google Drive API
-      debugPrint("Uploading file to folderId $folderId...");
-      bool isUploaded =
-          await GoogleDriveService().uploadFile(folderId, filePath, fileName);
-      return isUploaded;
+        if (kIsWeb) {
+          // Handle file upload for web
+          Uint8List? fileBytes = result.files.single.bytes;
+
+          if (fileBytes != null && fileBytes.isNotEmpty) {
+            // Upload using web-specific logic
+            return await GoogleDriveService()
+                .uploadFileWeb(folderId, fileBytes, fileName);
+          } else {
+            debugPrint("No file content available for web.");
+            return false;
+          }
+        } else {
+          // Handle file upload for non-web (mobile/desktop)
+          String? filePath = result.files.single.path;
+
+          if (filePath != null) {
+            return await GoogleDriveService()
+                .uploadFileNonWeb(folderId, filePath, fileName);
+          } else {
+            debugPrint("No file path available for non-web.");
+            return false;
+          }
+        }
+      } else {
+        debugPrint("No file selected.");
+        return false;
+      }
+    } catch (e) {
+      debugPrint("Error during file upload: $e");
+      return false;
     }
-    return false;
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       decoration: BoxDecoration(
         color: Colors.white,

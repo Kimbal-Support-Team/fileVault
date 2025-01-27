@@ -1,12 +1,15 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:googleapis_auth/auth_io.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
 
 class GoogleDriveService {
   final String _credentialsFile =
-      'assets/filevault-443909-434a0b313409.json'; // Update path if needed
+      dotenv.env['CREDENTIAL_FILE_PATH']!; // Update path if needed
 
   Future<drive.DriveApi> _authenticate() async {
     // Load the service account credentials from the JSON file
@@ -26,7 +29,7 @@ class GoogleDriveService {
     return driveApi;
   }
 
-  Future<bool> uploadFile(
+  Future<bool> uploadFileNonWeb(
       String folderId, String filePath, String fileName) async {
     try {
       final driveApi = await _authenticate();
@@ -47,11 +50,103 @@ class GoogleDriveService {
         uploadMedia: media,
       );
 
-      print("File uploaded successfully!");
+      debugPrint("File uploaded successfully!");
       return true;
     } catch (e) {
-      print("Error uploading file: $e");
+      debugPrint("Error uploading file: $e");
       return false;
     }
+  }
+
+  Future<List<drive.File>> fetchFolderContents(String folderId) async {
+    try {
+      final driveApi = await _authenticate();
+
+      // List files and folders in the specified folder
+      final fileList = await driveApi.files.list(
+        q: "'$folderId' in parents",
+        spaces: 'drive',
+        $fields: 'files(id, name, mimeType,modifiedTime,parents, size)',
+      );
+
+      return fileList.files ?? [];
+    } catch (e) {
+      debugPrint("Error fetching folder contents: $e");
+      return [];
+    }
+  }
+
+  Future<bool> uploadFileWeb(
+      String folderId, Uint8List fileBytes, String fileName) async {
+    try {
+      Stream<List<int>> byteStream = Stream.fromIterable([fileBytes]);
+
+      final driveApi = await _authenticate();
+
+      final driveFile = drive.File()
+        ..name = fileName
+        ..parents = [folderId];
+
+      await driveApi.files.create(
+        driveFile,
+        uploadMedia: drive.Media(byteStream, fileBytes.length),
+      );
+
+      debugPrint("File uploaded successfully!");
+      return true;
+    } catch (e) {
+      debugPrint("Error uploading file: $e");
+      return false;
+    }
+  }
+
+  Future<bool> downloadFile(String fileId) async {
+    try {
+      final driveApi = await _authenticate();
+      final drive.File fileMetadata =
+          await driveApi.files.get(fileId) as drive.File;
+      final fileName = fileMetadata.name;
+      // Ask the user where to save the file
+      final directory = await getSavePath(fileName!);
+
+      if (directory == null) {
+        return false;
+      }
+
+      final file = await driveApi.files.get(fileId, downloadOptions: drive.DownloadOptions.fullMedia) as drive.Media;
+      final saveFile = File(directory);
+      final fileStream = saveFile.openWrite();
+
+      await file.stream.pipe(fileStream);
+      await fileStream.flush();
+      await fileStream.close();
+
+
+      return true;
+    } catch (e) {
+      debugPrint("Error downloading file: $e");
+      return false;
+    }
+  }
+
+  Future<String?> getSavePath(String fileName) async {
+    String? result;
+    if (Platform.isAndroid || Platform.isIOS) {
+      if (kIsWeb) {
+        // Web-specific file saving logic
+        result = fileName; // Just return the file name as path
+      } else {
+        result = await FilePicker.platform.saveFile(
+          dialogTitle: 'Please select an output file:',
+          fileName: fileName,
+        );
+      }
+    } else {
+      result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Please select an output file:',
+      fileName: fileName,
+      );
+    }
+    return result;
   }
 }

@@ -11,7 +11,6 @@ class ButtonsContainer extends StatefulWidget {
 }
 
 class _ButtonsContainerState extends State<ButtonsContainer> {
-
   @override
   Widget build(BuildContext context) {
     double screenWidth = MediaQuery.of(context).size.width;
@@ -44,10 +43,12 @@ class _ButtonsContainerState extends State<ButtonsContainer> {
           itemBuilder: (context, index) {
             if (index < downloadLinks.length) {
               return CustomButton(
-                  title: downloadLinks[index]['title']!,
-                  url: downloadLinks[index]['url']!);
+                title: downloadLinks[index]['title']!,
+                url: downloadLinks[index]['url']!,
+                folderId: folderIds[downloadLinks[index]['title']]!,
+              );
             } else {
-              return UploadButton();
+              return const UploadButton();
             }
           },
         ),
